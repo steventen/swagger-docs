@@ -11,6 +11,7 @@ module Swagger
           swagger_config[:controller] = controller
           swagger_config[:description] = description
           swagger_config[:resource_path] = params[:resource_path]
+          swagger_config[:tags] = params[:tags]
         end
 
         def swagger_actions

@@ -4,6 +4,8 @@ module Swagger
       class << self
         @@base_api_controller = nil
 
+        attr_reader :tags
+
         def base_api_controller
           @@base_api_controller || ActionController::Base
         end
@@ -23,7 +25,7 @@ module Swagger
         end
 
         def base_application
-          Rails.application 
+          Rails.application
         end
 
         def register_apis(versions)
@@ -36,7 +38,7 @@ module Swagger
         def registered_apis
           @versions ||= {}
         end
-        
+
         def transform_path(path, api_version)
           # This is only for overriding, so don't perform any path transformations by default.
           path
@@ -57,6 +59,11 @@ module Swagger
           $stderr.puts output if type == :error and ENV[log_env_name]=="1"
         end
 
+        # support multiple tags divided by `,`
+        def tags=(tags)
+          return @tags = nil unless tags.present?
+          @tags = tags.split(',').map(&:strip)
+        end
       end
     end
   end
