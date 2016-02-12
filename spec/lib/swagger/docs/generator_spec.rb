@@ -24,7 +24,8 @@ describe Swagger::Docs::Generator do
     stub_route(            "^GET$",    "index",   "",               "/api/v1/empty_path"), # intentional empty path should not cause any errors
     stub_route(            "^GET$",    "ignored", "api/v1/sample",  "/api/v1/ignored(.:format)"), # an action without documentation should not cause any errors
     stub_route(            "^GET|POST$","index",  "api/v1/multiple_routes",  "/api/v1/multiple_routes(.:format)"), # multiple route methods
-    stub_route(            "^GET$",    "show",    "api/v1/tagged",  "/api/v1/tagged/:id(.:format)")
+    stub_route(            "^GET$",    "show",    "api/v1/tagged",  "/api/v1/tagged/:id(.:format)"),
+    stub_route(            "^PUT$",  "create",  "api/v1/tagged",  "/api/v1/tagged(.:format)")
   ]}
 
   let(:tmp_dir) { Pathname.new('/tmp/swagger-docs/') }
@@ -457,6 +458,32 @@ describe Swagger::Docs::Generator do
           generate(config)
           paths = get_api_paths(apis, "/tagged.{format}")
           expect(paths.length).to eq 0
+        end
+        it "includes controller that contains the expected tag" do
+          Swagger::Docs::Config.tags = 'public, admin'
+          generate(config)
+          paths = get_api_paths(apis, "/tagged.{format}")
+          expect(paths.length).to eq 1
+        end
+        context "apis" do
+          let(:file_resource) { tmp_dir + 'tagged.json' }
+          let(:resource) { file_resource.read }
+          let(:response) { JSON.parse(resource) }
+          let(:apis) { response["apis"] }
+
+          it "includes action if tagged with expected tag" do
+            Swagger::Docs::Config.tags = 'admin, superadmin'
+            generate(config)
+            operations = get_api_operations(apis, "/tagged")
+            expect(operations.length).to eq 1
+          end
+
+          it "skips action not belong to expected tag" do
+            Swagger::Docs::Config.tags = 'admin'
+            generate(config)
+            operations = get_api_operations(apis, "/tagged")
+            expect(operations.length).to eq 0
+          end
         end
       end
     end
