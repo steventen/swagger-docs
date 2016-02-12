@@ -64,6 +64,10 @@ module Swagger
           return @tags = nil unless tags.present?
           @tags = tags.split(',').map(&:strip)
         end
+
+        def tagged_by(tagged_tags)
+          tags.nil? || tagged_tags.nil? || (tags - tagged_tags).length < tags.length
+        end
       end
     end
   end

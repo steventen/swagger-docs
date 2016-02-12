@@ -17,6 +17,7 @@ module Api
         summary "Creates a new Group"
         consumes [ "application/json", "text/xml" ]
         param :form, :name, :string, :required, "Group Name"
+        param :form, :rank, :integer, :optional, "Group Rank", tags: ['boss']
         param_list :form, :role, :string, :required, "Role", [ "admin", "superadmin", "user" ]
         response :unauthorized
         response :not_acceptable

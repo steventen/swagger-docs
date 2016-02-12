@@ -8,9 +8,18 @@ module Swagger
         instance.instance_eval(&block)
         # Now return all of the set instance variables as a Hash
         instance.instance_variables.inject({}) { |result_hash, instance_variable|
-          result_hash[instance_variable] = instance.instance_variable_get(instance_variable)
+          values = instance.instance_variable_get(instance_variable)
+          values = remove_untagged(values) if instance_variable == :@parameters
+          result_hash[instance_variable] = values
           result_hash # Gotta have the block return the result_hash
         }
+      end
+
+      def self.remove_untagged(params)
+        params.select do |param|
+          tags = param.delete(:tags)
+          Swagger::Docs::Config.tagged_by(tags)
+        end
       end
 
       def summary(text)

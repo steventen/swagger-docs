@@ -484,6 +484,20 @@ describe Swagger::Docs::Generator do
             operations = get_api_operations(apis, "/tagged")
             expect(operations.length).to eq 0
           end
+
+          it "skips parameter not belong to expected tag" do
+            Swagger::Docs::Config.tags = 'admin, superadmin'
+            generate(config)
+            operation = get_api_operation(apis, "/tagged", :put)
+            expect(get_api_parameter(operation, "rank")).to be_nil
+          end
+
+          it "includes parameter if tagged with expected tag" do
+            Swagger::Docs::Config.tags = 'admin, superadmin, boss'
+            generate(config)
+            operation = get_api_operation(apis, "/tagged", :put)
+            expect(get_api_parameter(operation, "rank")).to_not be_nil
+          end
         end
       end
     end
