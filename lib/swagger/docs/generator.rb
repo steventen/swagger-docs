@@ -267,7 +267,7 @@ module Swagger
 
         def tagged_by(tagged_tags)
           tags = Swagger::Docs::Config.tags
-          tags.nil? || tag.nil? || tags - tagged_tags < tags.length
+          tags.nil? || tagged_tags.nil? || (tags - tagged_tags).length < tags.length
         end
       end
     end

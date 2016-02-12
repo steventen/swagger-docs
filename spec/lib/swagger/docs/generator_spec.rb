@@ -23,7 +23,8 @@ describe Swagger::Docs::Generator do
     stub_route(            "^GET$",    "new",     "api/v1/sample",  "/api/v1/sample/new(.:format)"), # no parameters for this method
     stub_route(            "^GET$",    "index",   "",               "/api/v1/empty_path"), # intentional empty path should not cause any errors
     stub_route(            "^GET$",    "ignored", "api/v1/sample",  "/api/v1/ignored(.:format)"), # an action without documentation should not cause any errors
-    stub_route(            "^GET|POST$","index",  "api/v1/multiple_routes",  "/api/v1/multiple_routes(.:format)") # multiple route methods
+    stub_route(            "^GET|POST$","index",  "api/v1/multiple_routes",  "/api/v1/multiple_routes(.:format)"), # multiple route methods
+    stub_route(            "^GET$",    "show",    "api/v1/tagged",  "/api/v1/tagged/:id(.:format)")
   ]}
 
   let(:tmp_dir) { Pathname.new('/tmp/swagger-docs/') }
@@ -32,10 +33,10 @@ describe Swagger::Docs::Generator do
   let(:file_resource_nested) { tmp_dir + 'nested.json' }
   let(:file_resource_custom_resource_path) { tmp_dir + 'custom_resource_path.json' }
 
-  let(:default_config) { 
+  let(:default_config) {
     {
-      :controller_base_path => "api/v1", 
-      :api_file_path => "#{tmp_dir}", 
+      :controller_base_path => "api/v1",
+      :api_file_path => "#{tmp_dir}",
       :base_path => "http://api.no.where/",
       :attributes => {
         :info => {
@@ -46,7 +47,7 @@ describe Swagger::Docs::Generator do
           "license" => "Apache 2.0",
           "licenseUrl" => "http://www.apache.org/licenses/LICENSE-2.0.html"
         }
-      } 
+      }
     }
   }
 
@@ -54,7 +55,8 @@ describe Swagger::Docs::Generator do
     "fixtures/controllers/sample_controller",
     "fixtures/controllers/nested_controller",
     "fixtures/controllers/custom_resource_path_controller",
-    "fixtures/controllers/multiple_routes_controller"
+    "fixtures/controllers/multiple_routes_controller",
+    "fixtures/controllers/tagged_controller"
   ]}
 
   context "without controller base path" do
@@ -445,6 +447,17 @@ describe Swagger::Docs::Generator do
             expect(response["resourcePath"]).to eq "resource/testing"
           end
        end
+      end
+      context "tagged resource file" do
+        let(:resources) { file_resources.read }
+        let(:response) { JSON.parse(resources) }
+        let(:apis) { response["apis"] }
+        it "skips controller not belong to the tag" do
+          Swagger::Docs::Config.tags = 'public'
+          generate(config)
+          paths = get_api_paths(apis, "/tagged.{format}")
+          expect(paths.length).to eq 0
+        end
       end
     end
   end
