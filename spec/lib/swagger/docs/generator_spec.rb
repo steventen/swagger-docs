@@ -478,6 +478,13 @@ describe Swagger::Docs::Generator do
             expect(operations.length).to eq 1
           end
 
+          it "should not include tags attribute in json output of operation" do
+            Swagger::Docs::Config.tags = 'admin, superadmin'
+            generate(config)
+            operation = get_api_operation(apis, "/tagged", :put)
+            expect(operation.keys).not_to include("tags")
+          end
+
           it "skips action not belong to expected tag" do
             Swagger::Docs::Config.tags = 'admin'
             generate(config)
@@ -497,6 +504,14 @@ describe Swagger::Docs::Generator do
             generate(config)
             operation = get_api_operation(apis, "/tagged", :put)
             expect(get_api_parameter(operation, "rank")).to_not be_nil
+          end
+
+          it "should not include tags attribute in json output of parameters" do
+            Swagger::Docs::Config.tags = 'admin, superadmin, boss'
+            generate(config)
+            operation = get_api_operation(apis, "/tagged", :put)
+            param = get_api_parameter(operation, "rank")
+            expect(param.keys).not_to include("tags")
           end
         end
       end
