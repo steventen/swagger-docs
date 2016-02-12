@@ -93,9 +93,19 @@ module Swagger
         # Now return all of the set instance variables as a Hash
         instance.instance_variables.inject({}) { |result_hash, instance_var_name|
           key = instance_var_name[1..-1].to_sym  # Strip prefixed @ sign.
-          result_hash[key] = instance.instance_variable_get(instance_var_name)
+          values = instance.instance_variable_get(instance_var_name)
+          values = remove_untagged(values) if key == :properties
+          result_hash[key] = values
           result_hash # Gotta have the block return the result_hash
         }
+      end
+
+      def self.remove_untagged(properties)
+        properties.keys.each do |name|
+          tags = properties[name].delete(:tags)
+          properties.delete(name) unless Swagger::Docs::Config.tagged_by(tags)
+        end
+        properties
       end
 
       def properties
@@ -113,7 +123,7 @@ module Swagger
       def property(name, type, required, description = nil, hash={})
         properties[name] = {
           type: type,
-          description: description,
+          description: description
         }.merge!(hash)
         self.required << name if required == :required
       end

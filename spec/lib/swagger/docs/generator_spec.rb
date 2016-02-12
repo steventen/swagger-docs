@@ -513,6 +513,28 @@ describe Swagger::Docs::Generator do
             param = get_api_parameter(operation, "rank")
             expect(param.keys).not_to include("tags")
           end
+
+          it "should not include property in model that is not tagged" do
+            Swagger::Docs::Config.tags = 'admin, superadmin'
+            generate(config)
+            model = response["models"]["setting"]
+            property_names = model["properties"].keys
+            expect(property_names).not_to include("category")
+            expect(property_names).not_to include("expires")
+          end
+
+          it "should include property in model that is tagged" do
+            Swagger::Docs::Config.tags = 'admin, superadmin, boss'
+            generate(config)
+            model = response["models"]["setting"]
+            property_names = model["properties"].keys
+            expect(property_names).to include("list")
+            expect(property_names).to include("category")
+            expect(property_names).to include("expires")
+
+            expect(model["properties"]["category"].keys).not_to include("tags")
+            expect(model["properties"]["expires"].keys).not_to include("tags")
+          end
         end
       end
     end
