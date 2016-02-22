@@ -209,11 +209,10 @@ module Swagger
           models = {}
           # Add any declared models to the root of the resource.
           klass.swagger_models.each do |model_name, model|
-            filtered_properties = remove_untagged(model[:properties])
             formatted_model = {
               id: model[:id],
               required: model[:required],
-              properties: filtered_properties
+              properties: model[:properties]
             }
             formatted_model[:description] = model[:description] if model[:description]
             models[model[:id]] = formatted_model
@@ -269,14 +268,6 @@ module Swagger
 
         def tagged_by(tagged_tags)
           Swagger::Docs::Config.tagged_by(tagged_tags)
-        end
-
-        def remove_untagged(properties)
-          properties.keys.each do |name|
-            tags = properties[name].delete(:tags)
-            properties.delete(name) unless Swagger::Docs::Config.tagged_by(tags)
-          end
-          properties
         end
       end
     end
