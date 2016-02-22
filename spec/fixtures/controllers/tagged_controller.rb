@@ -27,12 +27,18 @@ module Api
         description "Group Settings"
         property :list, :string, :required, "The type of Access Control",
                  enum: %w(whitelist blacklist)
-        property :category, :string, :optional,
+        property :category, :string, :required,
                  "The category of Group",
                  enum: %w(adult child), tags: ['boss']
         property :expires, :string, :optional,
                  "RFC 3339 timestamp when the change expires",
                  format: 'date-time', tags: ['boss']
+        property :roles, :RoleSetting, :optional
+      end
+
+      swagger_model :RoleSetting do |model|
+        model.property :name, :string, :required, 'Role Name'
+        model.property :command, :string, :required, 'Role Command', tags: ['boss']
       end
     end
   end

@@ -521,6 +521,16 @@ describe Swagger::Docs::Generator do
             property_names = model["properties"].keys
             expect(property_names).not_to include("category")
             expect(property_names).not_to include("expires")
+            expect(model["required"]).not_to include("category")
+          end
+
+          it "should not include property in nested model that is not tagged" do
+            Swagger::Docs::Config.tags = 'admin, superadmin'
+            generate(config)
+            model = response["models"]["RoleSetting"]
+            property_names = model["properties"].keys
+            expect(property_names).not_to include("command")
+            expect(model["required"]).not_to include("command")
           end
 
           it "should include property in model that is tagged" do
@@ -534,6 +544,17 @@ describe Swagger::Docs::Generator do
 
             expect(model["properties"]["category"].keys).not_to include("tags")
             expect(model["properties"]["expires"].keys).not_to include("tags")
+          end
+
+          it "should include property in nested model that is tagged" do
+            Swagger::Docs::Config.tags = 'admin, superadmin, boss'
+            generate(config)
+            model = response["models"]["RoleSetting"]
+            property_names = model["properties"].keys
+            expect(property_names).to include("name")
+            expect(property_names).to include("command")
+            expect(model["required"]).to include("name")
+            expect(model["required"]).to include("command")
           end
         end
       end

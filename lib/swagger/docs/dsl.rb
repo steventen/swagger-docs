@@ -90,22 +90,33 @@ module Swagger
         instance = new
         instance.instance_eval(&block)
         instance.id = model_name
+        removed_property_names = []
         # Now return all of the set instance variables as a Hash
-        instance.instance_variables.inject({}) { |result_hash, instance_var_name|
+        result = instance.instance_variables.inject({}) do |result_hash, instance_var_name|
           key = instance_var_name[1..-1].to_sym  # Strip prefixed @ sign.
           values = instance.instance_variable_get(instance_var_name)
-          values = remove_untagged(values) if key == :properties
+          values, removed_property_names = remove_untagged(values) if key == :properties
           result_hash[key] = values
           result_hash # Gotta have the block return the result_hash
-        }
+        end
+
+        # remove the property names from required section in model
+        unless removed_property_names.empty?
+          result[:required] = result[:required] - removed_property_names
+        end
+        result
       end
 
       def self.remove_untagged(properties)
+        removed_names = []
         properties.keys.each do |name|
           tags = properties[name].delete(:tags)
-          properties.delete(name) unless Swagger::Docs::Config.tagged_by(tags)
+          unless Swagger::Docs::Config.tagged_by(tags)
+            properties.delete(name)
+            removed_names << name
+          end
         end
-        properties
+        [properties, removed_names]
       end
 
       def properties
