@@ -101,7 +101,7 @@ module Swagger
         end
 
         # remove the property names from required section in model
-        unless removed_property_names.empty?
+        if !removed_property_names.empty? && result[:required]
           result[:required] = result[:required] - removed_property_names
         end
         result
